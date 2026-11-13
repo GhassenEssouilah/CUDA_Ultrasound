@@ -1,0 +1,74 @@
+# ==============================================================================
+# Git Ignore Rules for CUDA Ultrasound Acceleration Project
+# ==============================================================================
+
+# Compiled Executables & Libraries
+*.exe
+*.dll
+*.so
+*.dylib
+*.lib
+*.exp
+*.out
+
+# Intermediate Compiler Artifacts & Objects (nvcc / MSVC)
+*.obj
+*.o
+*.obj.res
+*.exe.res
+*.ii
+*.ii.res
+*.cudafe1.*
+*.stub.c
+*.fatbin
+*.fatbin.c
+*.module_id
+*.sm_*.cubin
+*.cubin.optf
+*.reg.c
+*dlink*
+*.ptx.res
+*.ptx
+!results/profiling/*.ptx
+
+# Build Directories & Toolchain Metadata
+build/
+bin/
+x64/
+Debug/
+Release/
+.vs/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Generated CUDA Output Binaries (Fully Reproducible via Kernels)
+results/*.bin
+
+# Large RF Input Datasets (> 50 MB / External Download via script)
+data/binary/rf_data.bin
+data/*.npz
+
+# Python Caches & Checkpoints
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Local Notebook Backups (Preserved locally; not for GitHub)
+notebooks/*_backup.ipynb
+
+# Profiling Binary Databases (Publish via GitHub Releases or Artifacts)
+*.nsys-rep
+*.sqlite
+
+# Temporary & Shell Ghost Artifacts
+dir
+findstr
+type
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+

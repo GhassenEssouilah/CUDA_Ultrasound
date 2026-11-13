@@ -1,0 +1,68 @@
+
+========== CUDA DAS V5 ==========
+Mode: FULL IMAGE
+Pixels: 327680
+Threads per block: 256
+Warps per block: 8
+Threads per pixel: 32
+
+Loading dataset...
+
+Allocating GPU buffers...
+GPU buffers allocated successfully.
+
+========== GPU PIPELINE BENCHMARK ==========
+Blocks: 40960
+Threads per block: 256
+Warm-up runs: 2
+Measured runs: 20
+
+Running warm-up...
+Running benchmark...
+Run 1/20 completed.
+Run 2/20 completed.
+Run 3/20 completed.
+Run 4/20 completed.
+Run 5/20 completed.
+Run 6/20 completed.
+Run 7/20 completed.
+Run 8/20 completed.
+Run 9/20 completed.
+Run 10/20 completed.
+Run 11/20 completed.
+Run 12/20 completed.
+Run 13/20 completed.
+Run 14/20 completed.
+Run 15/20 completed.
+Run 16/20 completed.
+Run 17/20 completed.
+Run 18/20 completed.
+Run 19/20 completed.
+Run 20/20 completed.
+
+========== PIPELINE LATENCY RESULTS ==========
+
+H2D transfer:
+Median: 19.4872 ms
+P95: 21.1706 ms
+
+CUDA DAS V5 kernel:
+Median: 289.2469 ms
+P95: 289.7216 ms
+
+D2H transfer:
+Median: 0.5692 ms
+P95: 0.8563 ms
+
+Complete GPU pipeline:
+Median: 309.8841 ms
+P95: 311.5537 ms
+
+========== DAS V5 VALIDATION RESULTS ==========
+Pixels reconstructed: 327680
+RMSE: 0.000310
+Maximum absolute error: 0.024780
+Relative RMSE: 0.000873 %
+Output saved: results/cuda_das_v5_image.bin
+
+CUDA DAS V5 benchmark completed successfully!
