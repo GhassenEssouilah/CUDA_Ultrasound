@@ -218,11 +218,55 @@ The project was built and tested with the following Windows configuration:
 - **CMake:** 4.3.1
 - **Python:** 3.9 or later, with dependencies listed in `requirements.txt`
 
-Other compatible CUDA and compiler versions may work, but have not been verified as part of this project.
+Other compatible CUDA and compiler versions may work, but have not been verified.
 
 ### Build on Windows
 
-Open an x64 Native Tools Command
+Open an x64 Native Tools Command Prompt for Visual Studio and navigate to the project directory:
+
+```cmd
+cd /d C:\path\to\CUDA_Ultrasound
+```
+
+Configure the project:
+
+```cmd
+cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -DCMAKE_CUDA_ARCHITECTURES=86
+```
+
+Build all targets in Release mode:
+
+```cmd
+cmake --build build --config Release --parallel 4
+```
+
+Executables are generated in `bin/Release/`.
+
+### Run the CUDA implementations
+
+Run the V7 validation benchmark:
+
+```cmd
+bin\Release\cuda_das_v7.exe
+```
+
+Run the complete 1024 × 320 image reconstruction:
+
+```cmd
+bin\Release\cuda_das_v7.exe --full
+```
+
+Other versions can be executed by replacing `cuda_das_v7.exe` with the corresponding executable name.
+
+### Python dependencies
+
+Install the Python dependencies:
+
+```cmd
+pip install -r requirements.txt
+```
+
+Scripts in `src/scripts/` support dataset inspection, result comparison, and visualization.
 ---
 
 ## 8. Milestone Roadmap
