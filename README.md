@@ -158,79 +158,71 @@ local_sum += receive_contribution(tx, e3, rt3, ...);
 
 ---
 
-## 5. Controlled Benchmark Results (Mobile Power Profile Baseline)
+## 5. Latest Full-Image Benchmark Results
 
-Benchmarked on an **NVIDIA GeForce RTX 3050 Laptop GPU** (Ampere `sm_86`, 16 SMs, 2048 CUDA Cores) operating under controlled mobile power constraints (observed clocks: Graphics $\approx 1730\text{ MHz}$, Memory $\approx 810\text{ MHz}$; 2 warm-up runs, 20 measured iterations via `cudaEventElapsedTime`):
+Benchmarked on an **NVIDIA GeForce RTX 3050 Laptop GPU** (Ampere, `sm_86`), using the full PICMUS reconstruction grid of 327,680 pixels (1024 × 320).
 
-| Implementation | Kernel Median (ms) | Kernel P95 (ms) | Pipeline Median (ms) | Pipeline P95 (ms) | Speedup vs V4 |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **V4 Baseline** | 289.7211 | 289.9589 | 310.1110 | 310.6784 | Baseline |
-| **V7 Synchronized**| **254.8951** | **255.1807** | **275.3078** | **276.6326** | **+12.02% (Kernel)** <br> **+11.22% (Pipeline)** |
+Both implementations were executed using the same benchmark procedure: 2 warm-up runs and 20 measured iterations. These measurements represent a fresh benchmark run; they should not be directly mixed with the earlier controlled mobile power-profile measurements documented in the experiment history.
 
-> [!NOTE]
-> - **Full pipeline latency** includes PCIe Host-to-Device transfer of static parameters and RF data (~19.2 ms), kernel execution, and Device-to-Host transfer of the reconstructed $1024 \times 320$ image buffer (~0.57 ms).
-> - V1, V2, V3, V5, and V6 are omitted from this controlled benchmark table because their historical test logs were obtained under differing operating profiles. See [`REFERENCE_AND_VALIDATION.md`](REFERENCE_AND_VALIDATION.md) for individual version analyses.
+| Implementation | Kernel Median (ms) | Kernel P95 (ms) | Pipeline Median (ms) | Pipeline P95 (ms) |
+| :--- | ---: | ---: | ---: | ---: |
+| **V4 Baseline** | 86.1717 | 87.2067 | 93.9425 | 100.5221 |
+| **V7 Synchronized** | **75.8378** | **76.1864** | **82.8144** | **88.1476** |
 
+Compared with V4, V7 achieved:
+- **11.99% lower kernel median latency**
+- **12.63% lower kernel P95 latency**
+- **11.85% lower complete pipeline median latency**
+- **12.31% lower complete pipeline P95 latency**
+
+The complete GPU pipeline includes Host-to-Device (H2D) transfers, CUDA kernel execution, and Device-to-Host (D2H) transfer.
+
+**Benchmark configuration:** 2 warm-up runs, 20 measured runs, 327,680 reconstructed pixels, 256 threads per block.
 ---
 
 ## 6. Numerical Validation & Accuracy
 
-Numerical accuracy is verified across all $327,680$ pixels against the double/single-precision CPU reference generated from the PICMUS simulation dataset:
+Numerical accuracy was evaluated over the complete 327,680-pixel reconstruction against the CPU DAS reference generated from the PICMUS simulation dataset.
 
-| Metric | CUDA V4 vs CPU Reference | CUDA V7 vs CPU Reference | CUDA V4 vs CUDA V7 |
-| :--- | :---: | :---: | :---: |
-| **Root-Mean-Square Error (RMSE)** | $1.15 \times 10^{-4}$ | $1.15 \times 10^{-4}$ | **0.000000** |
-| **Maximum Absolute Error** | $3.29 \times 10^{-2}$ | $3.29 \times 10^{-2}$ | **0.000000** |
-| **Relative RMSE** | $4.41 \times 10^{-4}$ | $4.41 \times 10^{-4}$ | **0.000000** |
-| **Pearson Correlation ($r$)** | $> 0.99999$ | $> 0.99999$ | **1.000000** |
-| **Bit-Identity Check** | — | — | **100% Bit-Identical** |
+### CUDA vs CPU Reference
 
-CUDA V4 and V7 produce **identical output bytes**, proving that warp synchronization optimizes instruction scheduling without altering numerical precision.
+| Metric | CUDA V4 | CUDA V7 |
+| :--- | ---: | ---: |
+| **Root-Mean-Square Error (RMSE)** | 0.000310 | 0.000310 |
+| **Maximum Absolute Error** | 0.024780 | 0.024780 |
+| **Relative RMSE** | 0.000873% | 0.000873% |
 
+### CUDA V4 vs CUDA V7
+
+The full reconstructed images were compared element by element.
+
+| Metric | Result |
+| :--- | ---: |
+| **Maximum Absolute Difference** | 0.000000 |
+| **Bit-Identity Check** | Passed |
+| **Output Difference** | 0.0 |
+
+The V4 and V7 implementations produce bit-identical full-image outputs. This confirms that the V7 warp synchronization changes execution performance without changing the reconstructed numerical result.
 ---
 
 ## 7. Build and Run Instructions
 
 ### Prerequisites
 
-- **NVIDIA GPU:** Compute Capability $\ge 8.6$ (Ampere architecture, e.g., RTX 3050/3060/A2000, Jetson Orin).
-- **CUDA Toolkit:** Version 11.8 or 12.x (`nvcc`).
-- **Host Compiler:** C++17 compliant compiler (MSVC 2019/2022 on Windows, GCC 9+ on Linux).
-- **Build System:** CMake 3.20+.
-- **Python:** Version 3.9+ with packages from `requirements.txt`.
+The project was built and tested with the following Windows configuration:
 
-### Step 1: Install Python Dependencies
-```bash
-pip install -r requirements.txt
-```
+- **GPU:** NVIDIA GeForce RTX 3050 Laptop GPU (Compute Capability 8.6)
+- **CUDA Toolkit:** 13.5.37
+- **Host compiler:** MSVC 19.51.36260
+- **Visual Studio Build Tools:** 2026, C++ workload
+- **CMake:** 4.3.1
+- **Python:** 3.9 or later, with dependencies listed in `requirements.txt`
 
-### Step 2: Build with CMake
-```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-```
-Compiled executables will be placed in `bin/` (`cuda_das_v1.exe` through `cuda_das_v7.exe`).
+Other compatible CUDA and compiler versions may work, but have not been verified as part of this project.
 
-### Step 3: Direct Compilation with `nvcc`
-To compile the best-performing V7 kernel directly:
-```bash
-nvcc -O3 -arch=sm_86 -Xptxas=-v src/kernels/cuda_das_v7.cu -o bin/cuda_das_v7.exe
-```
+### Build on Windows
 
-### Step 4: Run Reconstruction & Validation
-1. **Execute V7 Reconstruction:**
-   ```bash
-   ./bin/cuda_das_v7.exe
-   ```
-2. **Verify Bit Parity with V4:**
-   ```bash
-   python src/scripts/compare_v4_v7.py
-   ```
-3. **Generate B-Mode Visualizations & Error Maps:**
-   ```bash
-   python src/scripts/visualize_v7.py
-   ```
-
+Open an x64 Native Tools Command
 ---
 
 ## 8. Milestone Roadmap
